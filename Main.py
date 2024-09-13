@@ -41,7 +41,9 @@ def get_data(elem: WebElement) -> str:
     downloads_path = os.path.expandvars(R"%USERPROFILE%\Downloads")
     zip_name = download_zip(downloads_path, 30, elem.click)
     zip_path = os.path.join(downloads_path,zip_name)
-    file_path = unzip_data(zip_path)
+    extraction_path = os.path.join(downloads_path,"Extractions")
+    os.makedirs(extraction_path, exist_ok=True)
+    file_path = unzip_data(zip_path,extraction_path)
     return file_path
 
 
@@ -52,7 +54,7 @@ def download_zip(path_to_downloads: str, timeout: int, download_action: callable
     while seconds < timeout:
         time.sleep(1)
         for fname in os.listdir(path_to_downloads):
-            if fname not in original_files and not fname.endswith('.crdownload'):
+            if fname not in original_files and not (fname.endswith('.crdownload') or fname.endswith('.tmp')):
                 return fname
         seconds += 1
     return ""
@@ -64,11 +66,11 @@ def unzip_data(Zip_path: str, output_folder_path: str) -> str:
     current_files = os.listdir(output_folder_path)
     for file in current_files:
         if file not in original_files:
-            return file
+            return os.path.join(output_folder_path , file)
     return ""
 
 def read_excel(file_path: str)-> pd.DataFrame:
-    dfs = pd.read_excel(file_path, sheet_name="Plan1")
+    dfs = pd.read_excel(file_path)
     dfs.columns = ['Area','Value']
     return dfs
 
